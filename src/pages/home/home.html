@@ -1,14 +1,51 @@
 <ion-header>
-  <ion-navbar>
-    <ion-title>
-      Ionic Blank
-    </ion-title>
+  <ion-navbar color="header">
+    <button ion-button menuToggle>
+      <ion-icon name="menu"></ion-icon>
+     
+    </button>
+    <ion-title >BTracker</ion-title>
+   
+    <ion-buttons end> <img width="30" src="assets/imgs/logo.png" style="margin-top: 12px"/></ion-buttons>
+   
   </ion-navbar>
 </ion-header>
 
-<ion-content padding>
-  The world is your oyster.
-  <p>
-    If you get lost, the <a href="http://ionicframework.com/docs/v2">docs</a> will be your guide.
-  </p>
+<ion-content color="background">
+    <ion-card >
+        <ion-item color="card"> 
+            <!-- <ion-label style="width:20px !important" class="label-xs"><h2>Device</h2></ion-label> -->
+            <ion-icon name="logo-rss" item-start large></ion-icon>
+            <ion-select [(ngModel)]="selectedDevice" style="max-width:80%" (ionChange)="showLastPosition()">
+                <ion-option *ngFor="let device of deviceList" [value]=device>{{device.deviceDescription}}</ion-option>
+              </ion-select>
+        </ion-item>
+        <ion-item color="card">
+            <ion-icon name="ios-megaphone-outline" item-start large></ion-icon>
+            <ion-label *ngIf=isAlarmOn> Alarm On</ion-label>
+            <ion-label *ngIf=!isAlarmOn> Alarm Off</ion-label>
+            <ion-toggle [(ngModel)]="isAlarmOn" [checked]="isAlarmOn" (ionChange)="alarmSwitcher($event)"></ion-toggle>
+        </ion-item>
+      
+        <ion-item color="card">
+         
+            <ion-range [(ngModel)]="cursor" (ionChange)="showLastPosition()">
+                <ion-icon range-left small name="md-arrow-dropright"> 1 </ion-icon>
+                <ion-icon range-right small name="md-arrow-dropleft"> 20</ion-icon>
+              </ion-range>
+            <ion-icon name="ios-bicycle-outline" item-start large></ion-icon>
+            <!-- <button ion-button icon-start clear item-end (click)="showLastPosition()">
+              <ion-icon name="navigate"></ion-icon>
+              Go
+            </button> -->
+           
+        </ion-item>
+      
+      </ion-card>
+
+
+       <div id="map" style="height:100%;margin: 10px;"></div>
+     
+ 
+  
 </ion-content>

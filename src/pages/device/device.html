@@ -1,0 +1,59 @@
+<ion-header>
+  <ion-navbar color="header">
+    <button ion-button menuToggle>
+      <ion-icon name="menu"></ion-icon>
+     
+    </button>
+    <ion-title >BTracker</ion-title>
+   
+    <ion-buttons end> <img width="30" src="assets/imgs/logo.png" style="margin-top: 12px"/></ion-buttons>
+   
+  </ion-navbar>
+</ion-header>
+
+<ion-content color="background">
+    <ion-buttons *ngIf="!editMode" end (click)="editMode=true">
+        <button ion-button icon-start clear small>
+          <ion-icon name="md-add-circle"> Add</ion-icon>
+        </button>
+    </ion-buttons>
+
+    <ion-buttons *ngIf="editMode" end (click)="editMode=true">
+        <button ion-button icon-start clear small color="secondary">
+          <ion-icon name="md-download"> Save</ion-icon>
+        </button>
+    </ion-buttons>
+
+    
+      <ion-list>
+        <button ion-item *ngFor="let device of deviceList" (click)="showDevice(device)">
+          {{ device.deviceDescription }}
+        </button>  
+      </ion-list>
+
+      <ion-card *ngIf="selectedDevice.deviceDescription!=''">
+          <ion-list>
+          <ion-item color="card">
+              <ion-label color="primary" stacked>Device</ion-label>
+              <ion-label *ngIf="!editMode">{{ selectedDevice.deviceDescription }} </ion-label>  
+              <ion-input *ngIf="editMode"></ion-input>
+            </ion-item>
+
+            <ion-item color="card">
+                <ion-label color="primary" stacked>EUI</ion-label>
+                <ion-label *ngIf="!editMode">{{ selectedDevice.deviceEUI}}</ion-label>
+                <ion-input *ngIf="editMode"></ion-input>
+            </ion-item>
+            <ion-item color="card"*ngIf="!editMode" >
+                <ion-label *ngIf="!editMode" color="primary" stacked>Date added:</ion-label>
+                <ion-datetime *ngIf="!editMode" fixed displayFormat="DD/MM/YYYY" [(ngModel)]="selectedDevice.dateAdded"></ion-datetime>
+            </ion-item>
+            <ion-item color="card" *ngIf="!editMode">
+                <ion-label *ngIf="!editMode" color="primary" stacked>Device ID:</ion-label>
+                <ion-label *ngIf="!editMode">{{selectedDevice.deviceId}}</ion-label>
+            </ion-item>
+
+           
+          </ion-list>
+      </ion-card>
+</ion-content>
