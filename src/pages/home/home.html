@@ -12,24 +12,20 @@
 </ion-header>
 
 <ion-content color="background">
-    <ion-card >
-        <ion-item color="card"> 
-            <!-- <ion-label style="width:20px !important" class="label-xs"><h2>Device</h2></ion-label> -->
-            <ion-icon name="logo-rss" item-start large></ion-icon>
-            <ion-select [(ngModel)]="selectedDevice" style="max-width:80%" (ionChange)="showLastPosition()">
-                <ion-option *ngFor="let device of deviceList" [value]=device>{{device.deviceDescription}}</ion-option>
-              </ion-select>
-        </ion-item>
-        <ion-item color="card">
-            <ion-icon name="ios-megaphone-outline" item-start large></ion-icon>
-            <ion-label *ngIf=isAlarmOn> Alarm On</ion-label>
-            <ion-label *ngIf=!isAlarmOn> Alarm Off</ion-label>
-            <ion-toggle [(ngModel)]="isAlarmOn" [checked]="isAlarmOn" (ionChange)="alarmSwitcher($event)"></ion-toggle>
-        </ion-item>
-      
+  <ion-card >
+    <ion-list >
+      <button ion-item *ngFor="let device of deviceList" color="card" (click)="showLastPosition($event,device)">
+          <ion-icon name="md-arrow-dropright" style="margin: 0px" item-start large *ngIf=device.deviceDisplay color="primary"></ion-icon>
+          <ion-icon name="" style="margin: 0px" item-start large *ngIf=!device.deviceDisplay></ion-icon>
+          <ion-label> {{ device.deviceDescription }}</ion-label>
+          <ion-label *ngIf=device.deviceStatus color="primary"> Alarm On</ion-label>
+          <ion-label style="color:gray" *ngIf=!device.deviceStatus> Alarm Off</ion-label>
+          <ion-toggle [(ngModel)]="device.deviceStatus" [checked]="device.deviceStatus" (click) = "saveAlarm()"></ion-toggle>
+        </button>  
+      </ion-list>     
         <ion-item color="card">
          
-            <ion-range [(ngModel)]="cursor" (ionChange)="showLastPosition()">
+            <ion-range [(ngModel)]="cursor" (ionChange)="showLastPosition($event, selectedDevice)">
                 <ion-icon range-left small name="md-arrow-dropright"> 1 </ion-icon>
                 <ion-icon range-right small name="md-arrow-dropleft"> 20</ion-icon>
               </ion-range>

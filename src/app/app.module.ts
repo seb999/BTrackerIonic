@@ -10,13 +10,14 @@ import { LocalNotifications } from '@ionic-native/local-notifications';
 import { MyApp } from './app.component';
 import { HomePage } from '../pages/home/home';
 import { DevicePage } from '../pages/device/device';
+import { HelperService } from '../service/helper.servcie';
 
 
 @NgModule({
   declarations: [
     MyApp,
     HomePage,
-    DevicePage
+    DevicePage,
   ],
   imports: [
     BrowserModule,
@@ -35,6 +36,7 @@ import { DevicePage } from '../pages/device/device';
     SplashScreen,
     {provide: ErrorHandler, useClass: IonicErrorHandler},
     LocalNotifications,
+    HelperService
   ]
 })
 export class AppModule {}

@@ -9,7 +9,7 @@ import { Http } from '@angular/http';
 export class DevicePage {
   deviceList :any;
   selectedDevice : any = {"deviceDescription" : ""};
-  userIdSession : string = "0bf2941e-633c-425f-9695-5792eb8e3efd";  //replace this when you add loging page
+  userIdSession : string = "770c413d-7ee0-4db9-a856-d73551e5db4c";  //replace this when you add loging page
 
   constructor(public navCtrl: NavController, public http: Http) {
     
