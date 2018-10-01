@@ -40,7 +40,7 @@ export class HomePage {
   ionViewDidEnter() {
     //We read from storage (async)
     this.helperService.readFromStorageAlarmStatus().then((result) => {
-      this.deviceAlarmList = result;
+      if(result != null) this.deviceAlarmList = result;
       this.loadMap();
       this.loadDeviceList();
     });

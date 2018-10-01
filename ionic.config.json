@@ -7,7 +7,7 @@
   "proxies": [
     {
       "path": "/api",
-      "proxyUrl": "http://dspx.eu/antea25/api"
+      "proxyUrl": "http://localhost:5222/api"
     }
   ]
 }

@@ -10,6 +10,7 @@ import { LocalNotifications } from '@ionic-native/local-notifications';
 import { MyApp } from './app.component';
 import { HomePage } from '../pages/home/home';
 import { DevicePage } from '../pages/device/device';
+import { LoginPage } from '../pages/login/login';
 import { HelperService } from '../service/helper.servcie';
 
 
@@ -18,6 +19,7 @@ import { HelperService } from '../service/helper.servcie';
     MyApp,
     HomePage,
     DevicePage,
+    LoginPage,
   ],
   imports: [
     BrowserModule,
@@ -29,7 +31,8 @@ import { HelperService } from '../service/helper.servcie';
   entryComponents: [
     MyApp,
     HomePage,
-    DevicePage
+    DevicePage,
+    LoginPage
   ],
   providers: [
     StatusBar,

@@ -19,13 +19,17 @@ export class HelperService{
 
     //save the alarm status in local storage
     saveInStorageAlarmStatus(status : any) {
-        this.storage.set('AlarmStatus', status);
+        this.storage.set('AlarmStatus', status); 
     }
     
     //retrive alarm status from local storage
      readFromStorageAlarmStatus(){
         return this.storage.get('AlarmStatus');
     }
+
+    resetStorage(){
+        this.storage.remove("AlarmStatus");
+      }
     
 
    

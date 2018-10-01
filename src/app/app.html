@@ -6,6 +6,7 @@
               <img src="assets/imgs/defaultUser.png">
             </ion-avatar>
             <ion-title>Sebastien Dubos</ion-title>
+           
           </ion-item>
       
       </ion-toolbar>
@@ -16,6 +17,10 @@
         <button menuClose ion-item *ngFor="let p of pages" (click)="openPage(p)">
           <ion-icon name={{p.icon}} item-start large></ion-icon>
           {{p.title}}
+        </button>
+        <button menuClose ion-item (click)="logout()">
+          <ion-icon name="md-log-out" item-start large color="primary"></ion-icon>
+         Logout
         </button>
       </ion-list>
     </ion-content>
