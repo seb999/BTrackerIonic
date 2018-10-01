@@ -4,6 +4,7 @@ import { IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { StatusBar } from '@ionic-native/status-bar';
 import { HttpModule } from '@angular/http';
+import { HttpClientModule } from '@angular/common/http';
 import { IonicStorageModule } from '@ionic/storage';
 import { LocalNotifications } from '@ionic-native/local-notifications';
 
@@ -25,6 +26,7 @@ import { HelperService } from '../service/helper.servcie';
     BrowserModule,
     IonicModule.forRoot(MyApp),
     HttpModule,
+    HttpClientModule,
     IonicStorageModule.forRoot(),
   ],
   bootstrap: [IonicApp],

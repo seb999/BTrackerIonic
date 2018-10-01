@@ -1,6 +1,6 @@
 import { Component, ViewChild, ElementRef } from '@angular/core';
-import { NavController } from 'ionic-angular';
-import { Http } from '@angular/http';
+import { NavController, List } from 'ionic-angular';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'page-device',
@@ -9,9 +9,9 @@ import { Http } from '@angular/http';
 export class DevicePage {
   deviceList :any;
   selectedDevice : any = {"deviceDescription" : ""};
-  userIdSession : string = "0bf2941e-633c-425f-9695-5792eb8e3efd";  //replace this when you add loging page
+  userIdSession : string = "aed8e0fe-805c-4c85-8938-3f578f65bd74";  //replace this when you add loging page
 
-  constructor(public navCtrl: NavController, public http: Http) {
+  constructor(public navCtrl: NavController, public http: HttpClient) {
     
   }
 
@@ -20,18 +20,17 @@ export class DevicePage {
   }
 
   ionViewCanLeave(){
-    
   }
 
   loadDeviceList(){
     let urlBase = !document.URL.startsWith('http') ? "http://dspx.eu/antea25" : "";
     let url =  "/api/MyDevice/AppGetDeviceList/" + this.userIdSession;
-    this.http.get(url).subscribe(data => {
-      if(data.json().length > 0){
-        this.deviceList = data.json();
-        console.log( this.deviceList);
-      }
-    },err => {
+    this.http.get(url).subscribe(
+      data => {
+        this.deviceList = data;
+      },
+      err => { 
+        console.log(err);
     });
   }
 
