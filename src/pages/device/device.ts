@@ -1,6 +1,7 @@
 import { Component, ViewChild, ElementRef } from '@angular/core';
 import { NavController, List } from 'ionic-angular';
 import { HttpClient } from '@angular/common/http';
+import { Storage } from '@ionic/storage';
 
 @Component({
   selector: 'page-device',
@@ -9,14 +10,17 @@ import { HttpClient } from '@angular/common/http';
 export class DevicePage {
   deviceList :any;
   selectedDevice : any = {"deviceDescription" : ""};
-  userIdSession : string = "aed8e0fe-805c-4c85-8938-3f578f65bd74";  //replace this when you add loging page
+  // userIdSession : string = "aed8e0fe-805c-4c85-8938-3f578f65bd74";  //replace this when you add loging page
+  userIdSession : any;
 
-  constructor(public navCtrl: NavController, public http: HttpClient) {
-    
+  constructor(public navCtrl: NavController, public http: HttpClient, private storage: Storage) {
   }
 
   ionViewDidEnter() {
-    this.loadDeviceList();
+    this.storage.get('credentials').then((result) => {
+      this.userIdSession = result;
+      this.loadDeviceList();
+    });
   }
 
   ionViewCanLeave(){
