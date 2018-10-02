@@ -44,6 +44,11 @@ export class HomePage {
       this.loadMap();
       this.loadDeviceList();
     });
+
+    // this.storage.get('credentials').then((result) => {
+    //   this.userIdSession = result;
+    //   this.loadDeviceList();
+    // });
   }
 
   ionViewCanLeave(){
