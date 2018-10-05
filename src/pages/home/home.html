@@ -20,7 +20,7 @@
           <ion-label> {{ device.deviceDescription }}</ion-label>
           <ion-label *ngIf=device.deviceStatus color="primary"> Alarm On</ion-label>
           <ion-label style="color:gray" *ngIf=!device.deviceStatus> Alarm Off</ion-label>
-          <ion-toggle [(ngModel)]="device.deviceStatus" [checked]="device.deviceStatus" (click) = "saveAlarm()"></ion-toggle>
+          <ion-toggle [(ngModel)]="device.deviceStatus" [checked]="device.deviceStatus" (ionChange) = "saveAlarm()"></ion-toggle>
         </button>  
       </ion-list>     
         <ion-item color="card">

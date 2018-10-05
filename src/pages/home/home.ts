@@ -1,11 +1,23 @@
 import { Component, ViewChild, ElementRef } from '@angular/core';
-import { NavController, AlertController } from 'ionic-angular';
+import { NavController, AlertController, DateTime } from 'ionic-angular';
 import { LocalNotifications } from '@ionic-native/local-notifications';
 import leaflet from 'leaflet';
 import { HttpClient } from '@angular/common/http';
-import {antPath} from 'leaflet-ant-path';
+import { antPath } from 'leaflet-ant-path';
 import { Observable } from "rxjs";
 import { HelperService } from '../../service/helper.servcie';
+import { Storage } from '@ionic/storage';
+
+interface DeviceInterface {
+  deviceEUI: string;
+  deviceDescription: string;
+}
+
+interface PositionInterface {
+  gpsPositionLatitude: string;
+  gpsPositionLongitude: string;
+  gpsPositionDate : DateTime;
+}
 
 @Component({
   selector: 'page-home',
@@ -25,30 +37,32 @@ export class HomePage {
   lockMap : boolean = false;
   interval : any;
   subscription  :any;
-  private alertClosed = true;
-  private alert;
-
-  userIdSession : string = "770c413d-7ee0-4db9-a856-d73551e5db4c";  //replace this when you add loging page
+  userIdSession : string; 
+  alertClosed = true;
+  alert;
 
   constructor(public navCtrl: NavController, 
     public http: HttpClient, 
     private localNotifications: LocalNotifications, 
     public alertCtrl: AlertController, 
-    private helperService: HelperService ) {
+    private helperService: HelperService,
+    private storage: Storage ) {
   }
 
   ionViewDidEnter() {
-    //We read from storage (async)
-    this.helperService.readFromStorageAlarmStatus().then((result) => {
-      if(result != null) this.deviceAlarmList = result;
-      this.loadMap();
-      this.loadDeviceList();
+    //Get userId from storage
+    this.storage.get('credentials').then((result) => {
+      this.userIdSession = result;
+      
+       //Get Alarm status for all devices then load map and device list
+      this.storage.get('alarmStatus').then((result) => {
+        if(result != null) this.deviceAlarmList = result;
+        this.loadMap();
+        this.loadDeviceList();
+      });
+    },err => {
+      //show no credential in storage
     });
-
-    // this.storage.get('credentials').then((result) => {
-    //   this.userIdSession = result;
-    //   this.loadDeviceList();
-    // });
   }
 
   ionViewCanLeave(){
@@ -57,28 +71,25 @@ export class HomePage {
 
   loadDeviceList(){
     let urlBase = !document.URL.startsWith('http') ? "http://dspx.eu/antea25" : "";
-    let url =  "/api/MyDevice/AppGetDeviceList/" + this.userIdSession;
-    this.http.get(url).subscribe(data => {
-      // if(data.json().length > 0){
+    let url = urlBase+  "/api/MyDevice/AppGetDeviceList/" + this.userIdSession;
+    this.http.get<[DeviceInterface]>(url).subscribe(data => {
+        data.forEach(element => {
+          var deviceStatus = this.deviceAlarmList.filter(p=>p.deviceEUI == element.deviceEUI).map(p=>p.deviceStatus)[0];
+          deviceStatus = deviceStatus == undefined ? false : deviceStatus;
+          this.deviceList.push({"deviceDisplay" : false, 
+          "deviceDescription" : element.deviceDescription , 
+          "deviceEUI" : element.deviceEUI, 
+          "deviceStatus" : deviceStatus})
+        });
 
-      //   data.json().forEach(element => {
-      //     var deviceStatus = this.deviceAlarmList.filter(p=>p.deviceEUI == element.deviceEUI).map(p=>p.deviceStatus)[0];
-      //     deviceStatus = deviceStatus == undefined ? false : deviceStatus;
-      //     this.deviceList.push({"deviceDisplay" : false, 
-      //     "deviceDescription" : element.deviceDescription , 
-      //     "deviceEUI" : element.deviceEUI, 
-      //     "deviceStatus" : deviceStatus})
-      //   });
+        //select default one
+        this.selectedDevice = this.deviceList[0];
+        this.showLastPosition(null, this.selectedDevice);
 
-      //   //select default one
-      //   this.selectedDevice = this.deviceList[0];
-      //   this.showLastPosition(null, this.selectedDevice);
-
-      //   //start timer
-      //   if(this.subscription == undefined) this.startTimer();
-      // }
-    },err => {
-    });
+        //start timer
+        if(this.subscription == undefined) this.startTimer();
+ 
+    },err => {});
   }
 
   loadMap() {
@@ -119,36 +130,36 @@ export class HomePage {
     //Load data from API
     let urlBase = !document.URL.startsWith('http') ? "http://dspx.eu/antea25" : "";
     let url =  "/api/Loc/AppGetGpsData/" + this.selectedDevice.deviceEUI + "/" + Math.round(this.cursor/5+1);
-    this.http.get(url).subscribe(data => {
-      // if(data.json().length > 0){
-      //   console.log(data.json());
-      //   let gpsLastPostionList = data.json();
-      //   let latlngs = [];
-      //   gpsLastPostionList.forEach(element => {
-      //     latlngs.push([element.gpsPositionLatitude, element.gpsPositionLongitude])
-      //   });
+    this.http.get<[PositionInterface]>(url).subscribe(data => {
+
+        console.log(data);
+        let gpsLastPostionList = data;
+        let latlngs = [];
+        gpsLastPostionList.forEach(element => {
+          latlngs.push([element.gpsPositionLatitude, element.gpsPositionLongitude])
+        });
     
-      //   // Add path on the map
-      //   this.path = antPath(latlngs, {color:"#0000FF", dashArray:[10,20], pulseColor:"#FFFFFF", delay:400, paused:false, reverse:true, weight:5},);
-      //   this.path.addTo(this.map);
+        // Add path on the map
+        this.path = antPath(latlngs, {color:"#0000FF", dashArray:[10,20], pulseColor:"#FFFFFF", delay:400, paused:false, reverse:true, weight:5},);
+        this.path.addTo(this.map);
 
-      //   // zoom the map to the polyline
-      //   this.map.fitBounds(this.path.getBounds());
+        // zoom the map to the polyline
+        this.map.fitBounds(this.path.getBounds());
 
-      //   //Add pointer on start end end
-      //  this.marker = leaflet.marker([gpsLastPostionList[gpsLastPostionList.length-1].gpsPositionLatitude, gpsLastPostionList[gpsLastPostionList.length-1].gpsPositionLongitude]).bindPopup("<b>" + this.selectedDevice.deviceDescription + "</b><br>" + gpsLastPostionList[0].gpsPositionDate).openPopup();
-      //  this.marker.addTo(this.map);
+        //Add pointer on start end end
+       this.marker = leaflet.marker([gpsLastPostionList[gpsLastPostionList.length-1].gpsPositionLatitude, gpsLastPostionList[gpsLastPostionList.length-1].gpsPositionLongitude]).bindPopup("<b>" + this.selectedDevice.deviceDescription + "</b><br>" + gpsLastPostionList[0].gpsPositionDate).openPopup();
+       this.marker.addTo(this.map);
 
-      //  this.markerStart = leaflet.marker([gpsLastPostionList[0].gpsPositionLatitude, gpsLastPostionList[0].gpsPositionLongitude]).bindPopup("<b>" + this.selectedDevice.deviceDescription + "</b><br>" + gpsLastPostionList[0].gpsPositionDate).openPopup();
-      //  this.markerStart.addTo(this.map);
-      // }
+       this.markerStart = leaflet.marker([gpsLastPostionList[0].gpsPositionLatitude, gpsLastPostionList[0].gpsPositionLongitude]).bindPopup("<b>" + this.selectedDevice.deviceDescription + "</b><br>" + gpsLastPostionList[0].gpsPositionDate).openPopup();
+       this.markerStart.addTo(this.map);
+      
       this.lockMap = false;
     },err => {
     });
   }
 
   saveAlarm(){
-    this.helperService.saveInStorageAlarmStatus(this.deviceList);
+    this.storage.set("alarmStatus", this.deviceList)
   }
   
   startTimer(){
@@ -160,21 +171,21 @@ export class HomePage {
 
   checkMotion(){
     this.deviceList.forEach(element => {
-      //  if(element.deviceStatus){
-      //     let urlBase = !document.URL.startsWith('http') ? "http://dspx.eu/antea25" : "";
-      //     let url = urlBase + "/api/loc/getMotion/" + element.deviceEUI + "/" + this.helperService.getCurrentDate();
-      //     this.http.get(url).subscribe(p => {
-      //       //as it is asynchrone if user stop alarm
-      //       if(element.deviceStatus){ 
-      //         if(p.json() == true && this.alertClosed)
-      //         {
-      //           //for debugging(Push notification only available on device)
-      //           this.showAlert('BTracker Alert!', 'Something is happening!'); 
-      //           this.pushNotification();
-      //         }
-      //       }
-      //     });
-      //  } 
+       if(element.deviceStatus){
+          let urlBase = !document.URL.startsWith('http') ? "http://dspx.eu/antea25" : "";
+          let url = urlBase + "/api/loc/getMotion/" + element.deviceEUI + "/" + this.helperService.getCurrentDate();
+          this.http.get(url).subscribe(data => {
+            //as it is asynchrone if user stop alarm
+            if(element.deviceStatus){ 
+              if(data == true && this.alertClosed)
+              {
+                //for debugging(Push notification only available on device)
+                this.showAlert('BTracker Alert!', 'Something is happening!'); 
+                this.pushNotification();
+              }
+            }
+          });
+       } 
      });
   }
 

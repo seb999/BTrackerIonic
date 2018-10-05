@@ -1,9 +1,9 @@
 import { Component, ViewChild, ElementRef } from '@angular/core';
 import { NavController } from 'ionic-angular';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { HomePage } from '../../pages/home/home';
-import { DevicePage } from '../../pages/device/device';
 import { Storage } from '@ionic/storage';
+import{ HelperService } from '../../service/helper.servcie'
 
 interface LoginViewModel {
   email: string;
@@ -11,7 +11,6 @@ interface LoginViewModel {
   rememberMe: boolean;
   result : string;
   userId : string;
-
 }
 
 @Component({
@@ -22,9 +21,11 @@ interface LoginViewModel {
 export class LoginPage {
   public registerCredentials : any = {};
   public loginFaill : boolean = false;
+  public noNetwork : boolean = false;
   public loginViewModel : LoginViewModel;
+  public showSpinner : boolean;
 
-  constructor(public navCtrl: NavController, public http: HttpClient, private storage: Storage) {  
+  constructor(public navCtrl: NavController, public http: HttpClient, private storage: Storage, private helperService: HelperService) {  
   }
 
   ionViewDidEnter() {   
@@ -34,28 +35,30 @@ export class LoginPage {
   }
 
   login(){
-    
+    this.showSpinner = true;
     let urlBase = !document.URL.startsWith('http') ? "http://dspx.eu/antea25" : "";
-    let url =  "/api/AccountIonic/Login/";
+    let url = urlBase + "/api/AccountIonic/Login/";
+    this.helperService.popup("host URL", url);
     this.loginViewModel = {email : this.registerCredentials.email, password : this.registerCredentials.password, rememberMe : true, result:"", userId:""}
-   
     this.http.post<LoginViewModel>(url, this.loginViewModel).subscribe(data => {
-        console.log(data);
         if(data.result == "passed") {
-            this.storeUserId();
-            this.navCtrl.setRoot(DevicePage);
+          this.showSpinner = false;
+          this.storeUserId();
+          this.navCtrl.setRoot(HomePage);
         }
         else{
-            this.loginFaill = true;
+          this.showSpinner = false;
+          this.loginFaill = true;
         }
     },err => {
-      console.log(err);
+      console.log(err.message);
+      this.noNetwork = true;
     });
   }
 
   storeUserId(){
     let urlBase = !document.URL.startsWith('http') ? "http://dspx.eu/antea25" : "";
-    let url =  "/api/AccountIonic/GetUserId/" + this.registerCredentials.email;
+    let url = urlBase + "/api/AccountIonic/GetUserId/" + this.registerCredentials.email;
     this.http.get<LoginViewModel>(url).subscribe(
       data => {
          this.storage.set('credentials',data.userId);
