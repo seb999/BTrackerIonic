@@ -1,6 +1,6 @@
 import { Component, ViewChild, ElementRef } from '@angular/core';
 import { NavController } from 'ionic-angular';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { HomePage } from '../../pages/home/home';
 import { Storage } from '@ionic/storage';
 import{ HelperService } from '../../service/helper.servcie'
@@ -35,12 +35,18 @@ export class LoginPage {
   }
 
   login(){
+
+    let headers = new HttpHeaders({
+      'Access-Control-Allow-Origin': '*'
+    });
+
+
     this.showSpinner = true;
     let urlBase = !document.URL.startsWith('http') ? "http://dspx.eu/antea25" : "";
-    let url = urlBase + "/api/AccountIonic/Login/";
-    this.helperService.popup("host URL", url);
+    let url = urlBase + "http://dspx.eu/antea25/api/AccountIonic/Login/";
+   
     this.loginViewModel = {email : this.registerCredentials.email, password : this.registerCredentials.password, rememberMe : true, result:"", userId:""}
-    this.http.post<LoginViewModel>(url, this.loginViewModel).subscribe(data => {
+    this.http.post<LoginViewModel>(url, this.loginViewModel, {headers}).subscribe(data => {
         if(data.result == "passed") {
           this.showSpinner = false;
           this.storeUserId();
@@ -51,6 +57,7 @@ export class LoginPage {
           this.loginFaill = true;
         }
     },err => {
+      this.helperService.popup("error", err.message);
       console.log(err.message);
       this.noNetwork = true;
     });
