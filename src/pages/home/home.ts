@@ -7,6 +7,7 @@ import { antPath } from 'leaflet-ant-path';
 import { Observable } from "rxjs";
 import { HelperService } from '../../service/helper.servcie';
 import { Storage } from '@ionic/storage';
+import { Platform } from 'ionic-angular';
 
 interface DeviceInterface {
   deviceEUI: string;
@@ -40,13 +41,22 @@ export class HomePage {
   userIdSession : string; 
   alertClosed = true;
   alert;
+  public isApp : boolean;
+  public baseUrl : string = "";
 
   constructor(public navCtrl: NavController, 
     public http: HttpClient, 
     private localNotifications: LocalNotifications, 
     public alertCtrl: AlertController, 
     private helperService: HelperService,
-    private storage: Storage ) {
+    private storage: Storage,
+    private platform : Platform ) {
+
+      if(this.platform.is('core') || this.platform.is('mobileweb')) {
+        this.isApp = false;
+      } else {
+        this.isApp = true;
+      }
   }
 
   ionViewDidEnter() {
@@ -70,8 +80,9 @@ export class HomePage {
   }
 
   loadDeviceList(){
-    let urlBase = !document.URL.startsWith('http') ? "http://dspx.eu/antea25" : "";
-    let url = urlBase+  "/api/MyDevice/AppGetDeviceList/" + this.userIdSession;
+    if(this.isApp) { this.baseUrl = "http://dspx.eu/antea25";}
+    let url = this.baseUrl +  "/api/MyDevice/AppGetDeviceList/" + this.userIdSession;
+
     this.http.get<[DeviceInterface]>(url).subscribe(data => {
         data.forEach(element => {
           var deviceStatus = this.deviceAlarmList.filter(p=>p.deviceEUI == element.deviceEUI).map(p=>p.deviceStatus)[0];
@@ -84,7 +95,7 @@ export class HomePage {
 
         //select default one
         this.selectedDevice = this.deviceList[0];
-        this.showLastPosition(null, this.selectedDevice);
+        //this.showLastPosition(null, this.selectedDevice);
 
         //start timer
         if(this.subscription == undefined) this.startTimer();
@@ -128,8 +139,9 @@ export class HomePage {
     }
       
     //Load data from API
-    let urlBase = !document.URL.startsWith('http') ? "http://dspx.eu/antea25" : "";
-    let url =  "/api/Loc/AppGetGpsData/" + this.selectedDevice.deviceEUI + "/" + Math.round(this.cursor/5+1);
+    if(this.isApp) { this.baseUrl = "http://dspx.eu/antea25";}
+    let url = this.baseUrl + "/api/Loc/AppGetGpsData/" + this.selectedDevice.deviceEUI + "/" + Math.round(this.cursor/5+1);
+
     this.http.get<[PositionInterface]>(url).subscribe(data => {
 
         console.log(data);
@@ -172,9 +184,10 @@ export class HomePage {
   checkMotion(){
     this.deviceList.forEach(element => {
        if(element.deviceStatus){
-          let urlBase = !document.URL.startsWith('http') ? "http://dspx.eu/antea25" : "";
-          let url = urlBase + "/api/loc/getMotion/" + element.deviceEUI + "/" + this.helperService.getCurrentDate();
-          this.http.get(url).subscribe(data => {
+        if(this.isApp) { this.baseUrl = "http://dspx.eu/antea25";}
+        let url = this.baseUrl +  "/api/loc/getMotion/" + element.deviceEUI + "/" + this.helperService.getCurrentDate();
+
+            this.http.get(url).subscribe(data => {
             //as it is asynchrone if user stop alarm
             if(element.deviceStatus){ 
               if(data == true && this.alertClosed)
