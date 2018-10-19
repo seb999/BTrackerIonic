@@ -1,13 +1,15 @@
 import { Injectable, } from '@angular/core';
 import { Storage } from '@ionic/storage';
-import { AlertController } from 'ionic-angular';
+import { AlertController, Platform } from 'ionic-angular';
 
 @Injectable()
   
 export class HelperService{
+    isApp  :boolean;
+    baseUrl  :string = "";
 
    // public result : any;
-    constructor(private storage: Storage, public alertCtrl: AlertController){
+    constructor(private storage: Storage, public alertCtrl: AlertController, private platform : Platform){
 
     }
 
@@ -16,6 +18,18 @@ export class HelperService{
         let currentDate = new Date();
         console.log(new Date(currentDate.getTime() - (currentDate.getTimezoneOffset() * 60000)));
         return new Date(currentDate.getTime() - (currentDate.getTimezoneOffset() * 60000)).toISOString().split('.')[0];
+    }
+
+    //Return URL from API method to access depend on running on device or runing on browser
+    urlBuilder(path : string) : string {
+      if(this.platform.is('core') || this.platform.is('mobileweb')) {
+        this.isApp = false;
+      } else {
+        this.isApp = true;
+      }
+
+      if(this.isApp) {  this.baseUrl = "http://dspx.eu/antea25";}
+      return this.baseUrl + path;
     }
 
     resetStorage(){

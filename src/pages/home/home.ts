@@ -1,5 +1,5 @@
 import { Component, ViewChild, ElementRef } from '@angular/core';
-import { NavController, AlertController, DateTime } from 'ionic-angular';
+import { NavController, AlertController } from 'ionic-angular';
 import { LocalNotifications } from '@ionic-native/local-notifications';
 import leaflet from 'leaflet';
 import { HttpClient } from '@angular/common/http';
@@ -7,18 +7,8 @@ import { antPath } from 'leaflet-ant-path';
 import { Observable } from "rxjs";
 import { HelperService } from '../../service/helper.servcie';
 import { Storage } from '@ionic/storage';
-import { Platform } from 'ionic-angular';
-
-interface DeviceInterface {
-  deviceEUI: string;
-  deviceDescription: string;
-}
-
-interface PositionInterface {
-  gpsPositionLatitude: string;
-  gpsPositionLongitude: string;
-  gpsPositionDate : DateTime;
-}
+import { Device } from '../../class/device.interface';
+import { Position } from '../../class/position.interface';
 
 @Component({
   selector: 'page-home',
@@ -49,14 +39,7 @@ export class HomePage {
     private localNotifications: LocalNotifications, 
     public alertCtrl: AlertController, 
     private helperService: HelperService,
-    private storage: Storage,
-    private platform : Platform ) {
-
-      if(this.platform.is('core') || this.platform.is('mobileweb')) {
-        this.isApp = false;
-      } else {
-        this.isApp = true;
-      }
+    private storage: Storage) {
   }
 
   ionViewDidEnter() {
@@ -80,10 +63,9 @@ export class HomePage {
   }
 
   loadDeviceList(){
-    if(this.isApp) { this.baseUrl = "http://dspx.eu/antea25";}
-    let url = this.baseUrl +  "/api/MyDevice/AppGetDeviceList/" + this.userIdSession;
+    let url = this.helperService.urlBuilder("/api/MyDevice/AppGetDeviceList/" + this.userIdSession);
 
-    this.http.get<[DeviceInterface]>(url).subscribe(data => {
+    this.http.get<[Device]>(url).subscribe(data => {
         data.forEach(element => {
           var deviceStatus = this.deviceAlarmList.filter(p=>p.deviceEUI == element.deviceEUI).map(p=>p.deviceStatus)[0];
           deviceStatus = deviceStatus == undefined ? false : deviceStatus;
@@ -125,45 +107,45 @@ export class HomePage {
     if(this.lockMap) return;
     this.lockMap = true;
 
-    //remvove a path is already displayed on map
-    if(this.path != undefined){
-      this.path.remove();
-    }
-
-    if(this.marker != undefined){
-      this.map.removeLayer(this.marker);
-    }
-
-    if(this.markerStart != undefined){
-      this.map.removeLayer(this.markerStart);
-    }
-      
     //Load data from API
-    if(this.isApp) { this.baseUrl = "http://dspx.eu/antea25";}
-    let url = this.baseUrl + "/api/Loc/AppGetGpsData/" + this.selectedDevice.deviceEUI + "/" + Math.round(this.cursor/5+1);
-
-    this.http.get<[PositionInterface]>(url).subscribe(data => {
-
-        console.log(data);
-        let gpsLastPostionList = data;
-        let latlngs = [];
-        gpsLastPostionList.forEach(element => {
-          latlngs.push([element.gpsPositionLatitude, element.gpsPositionLongitude])
-        });
+    let url = this.helperService.urlBuilder("/api/Loc/AppGetGpsData/" + this.selectedDevice.deviceEUI + "/" + Math.round(this.cursor/5+1));
     
-        // Add path on the map
-        this.path = antPath(latlngs, {color:"#0000FF", dashArray:[10,20], pulseColor:"#FFFFFF", delay:400, paused:false, reverse:true, weight:5},);
-        this.path.addTo(this.map);
+    this.http.get<[Position]>(url).subscribe(data  => {
 
-        // zoom the map to the polyline
-        this.map.fitBounds(this.path.getBounds());
+      if(data.length==0) return;
 
-        //Add pointer on start end end
-       this.marker = leaflet.marker([gpsLastPostionList[gpsLastPostionList.length-1].gpsPositionLatitude, gpsLastPostionList[gpsLastPostionList.length-1].gpsPositionLongitude]).bindPopup("<b>" + this.selectedDevice.deviceDescription + "</b><br>" + gpsLastPostionList[0].gpsPositionDate).openPopup();
-       this.marker.addTo(this.map);
+      //remvove a path is already displayed on map
+      if(this.path != undefined){
+        this.path.remove();
+      }
 
-       this.markerStart = leaflet.marker([gpsLastPostionList[0].gpsPositionLatitude, gpsLastPostionList[0].gpsPositionLongitude]).bindPopup("<b>" + this.selectedDevice.deviceDescription + "</b><br>" + gpsLastPostionList[0].gpsPositionDate).openPopup();
-       this.markerStart.addTo(this.map);
+      if(this.marker != undefined){
+        this.map.removeLayer(this.marker);
+      }
+
+      if(this.markerStart != undefined){
+        this.map.removeLayer(this.markerStart);
+      }
+
+      let gpsLastPostionList = data;
+      let latlngs = [];
+      gpsLastPostionList.forEach(element => {
+        latlngs.push([element.gpsPositionLatitude, element.gpsPositionLongitude])
+      });
+    
+      // Add path on the map
+      this.path = antPath(latlngs, {color:"#0000FF", dashArray:[10,20], pulseColor:"#FFFFFF", delay:400, paused:false, reverse:true, weight:5},);
+      this.path.addTo(this.map);
+
+      // zoom the map to the polyline
+      this.map.fitBounds(this.path.getBounds());
+
+      //Add pointer on start end end
+      this.marker = leaflet.marker([gpsLastPostionList[gpsLastPostionList.length-1].gpsPositionLatitude, gpsLastPostionList[gpsLastPostionList.length-1].gpsPositionLongitude]).bindPopup("<b>" + this.selectedDevice.deviceDescription + "</b><br>" + gpsLastPostionList[0].gpsPositionDate).openPopup();
+      this.marker.addTo(this.map);
+
+      this.markerStart = leaflet.marker([gpsLastPostionList[0].gpsPositionLatitude, gpsLastPostionList[0].gpsPositionLongitude]).bindPopup("<b>" + this.selectedDevice.deviceDescription + "</b><br>" + gpsLastPostionList[0].gpsPositionDate).openPopup();
+      this.markerStart.addTo(this.map);
       
       this.lockMap = false;
     },err => {
@@ -184,8 +166,8 @@ export class HomePage {
   checkMotion(){
     this.deviceList.forEach(element => {
        if(element.deviceStatus){
-        if(this.isApp) { this.baseUrl = "http://dspx.eu/antea25";}
-        let url = this.baseUrl +  "/api/loc/getMotion/" + element.deviceEUI + "/" + this.helperService.getCurrentDate();
+
+        let url = this.helperService.urlBuilder("/api/loc/getMotion/" + element.deviceEUI + "/" + this.helperService.getCurrentDate());
 
             this.http.get(url).subscribe(data => {
             //as it is asynchrone if user stop alarm
