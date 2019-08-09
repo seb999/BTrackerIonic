@@ -28,7 +28,8 @@ export class HelperService{
         this.isApp = true;
       }
 
-      if(this.isApp) {  this.baseUrl = "http://dspx.eu/antea25";}
+     // if(this.isApp) {  this.baseUrl = "http://dspx.eu/antea25";}
+     if(this.isApp) {  this.baseUrl = "https://localhost:5001";}
       return this.baseUrl + path;
     }
 
